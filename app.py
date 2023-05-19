@@ -1,6 +1,6 @@
 import requests
 import json
-import logging 
+import logging
 import boto3
 from botocore.exceptions import ClientError
 from oauthlib.oauth2 import BackendApplicationClient
@@ -19,11 +19,11 @@ def update_combined_events(event):
 
     # Get header token from libcal for authing requests
     # We could save this somewhere for reuse, but this function will get called once an hour in production
-    # and we're not doing anything else with libcal at this time. 
+    # and we're not doing anything else with libcal at this time.
     libcal_oauth_token = get_oauth_token(creds)
 
-    # Get events from various calendars and combine them in to a single list, sorted by start time. 
-    # This is a missing-but-hoped-for feature in the libcal API.  
+    # Get events from various calendars and combine them in to a single list, sorted by start time.
+    # This is a missing-but-hoped-for feature in the libcal API.
     headers = {}
     headers["Authorization"] = "Bearer %s" % (libcal_oauth_token)
     calendars = [
@@ -41,8 +41,8 @@ def update_combined_events(event):
         events_json = events_resp.json()
         all_events.extend(events_json["events"])
 
-    # Sort by start time could be weird for long running events... 
-    # Going with simplest solution until we can prove that we don't need something better. 
+    # Sort by start time could be weird for long running events...
+    # Going with simplest solution until we can prove that we don't need something better.
     sorted(all_events, key=lambda event: event["start"])
 
     # TODO think about whether to move this to a different bucket...specifically one without versioning turned on.
