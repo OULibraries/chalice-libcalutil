@@ -1,7 +1,12 @@
-import requests
-import json
+"""
+Helper utility to create a combined calendar feed for libcal, a currently-missing feature.
+"""
+
 import logging
+import json
+import requests
 import boto3
+
 from botocore.exceptions import ClientError
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
@@ -18,8 +23,9 @@ def update_combined_events(event):
     creds = get_secret()
 
     # Get header token from libcal for authing requests
-    # We could save this somewhere for reuse, but this function will get called once an hour in production
-    # and we're not doing anything else with libcal at this time.
+
+    # We could save this somewhere for reuse, but this function will get called once an hour
+    # in production and we're not doing anything else with libcal at this time.
     libcal_oauth_token = get_oauth_token(creds)
 
     # Get events from various calendars and combine them in to a single list, sorted by start time.
@@ -45,8 +51,9 @@ def update_combined_events(event):
     # Going with simplest solution until we can prove that we don't need something better.
     sorted(all_events, key=lambda event: event["start"])
 
-    # TODO think about whether to move this to a different bucket...specifically one without versioning turned on.
-    # TODO do we want to add an Expires header here
+    # TODO think about whether to move this to a different bucket...specifically one without
+    # versioning turned on.
+    # TODO do we want to add an Expires header here.
     s3 = boto3.resource("s3")
     s3object = s3.Object("ul-web-services", "libcal/events/all.json")
     s3object.put(
