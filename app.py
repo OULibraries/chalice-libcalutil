@@ -23,15 +23,32 @@ def update_combined_events(event):
     creds = get_secret()
 
     # Get header token from libcal for authing requests
-
-    # We could save this somewhere for reuse, but this function will get called once an hour
-    # in production and we're not doing anything else with libcal at this time.
+    # We could save this somewhere for reuse, but this function will get called
+    # approximately once an hour in production and we're not doing anything else
+    # the credential at this time.
     libcal_oauth_token = get_oauth_token(creds)
-
-    # Get events from various calendars and combine them in to a single list, sorted by start time.
-    # This is a missing-but-hoped-for feature in the libcal API.
     headers = {}
     headers["Authorization"] = "Bearer %s" % (libcal_oauth_token)
+
+    # We want to get events from various calendars and combine them in to a single
+    # list, sorted by start time. This is a missing-but-hoped-for feature in the
+    # LibCal API. See docs at https://libcal.ou.edu/admin/api/ (requires login)
+    #
+    # The calendars that we care about are:
+    #
+    # Cal ID    Name
+    # ------    -----
+    #  12024     339
+    #  11976     General
+    #  12022     Learning Lab Classroom
+    #   2267     Library Maker Space
+    #  12025     LL118
+    #  12221     LL121E
+    #  12023     LL123
+
+    # For all of the above, we're querying two categories of event
+    # - OU Libraries Event
+    # - Research Wrokshops
     calendars = [
         "https://libcal.ou.edu/1.1/events?cal_id=12024&category=57017,57014&limit=3",
         "https://libcal.ou.edu/1.1/events?cal_id=11976&category=57022,57021&limit=3",
