@@ -75,7 +75,7 @@ def update_combined_events(event):
 
     # TODO think about whether to move this to a different bucket...specifically one without
     # versioning turned on.
-    # TODO do we want to add an Expires header here.
+    # TODO are we using the right timout for the Expires header here?
     s3 = boto3.resource("s3")
     s3object = s3.Object("ul-web-services", "libcal/events/all.json")
     s3object.put(
