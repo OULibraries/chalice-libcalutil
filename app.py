@@ -2,6 +2,7 @@
 Helper utility to create a combined calendar feed for libcal, a currently-missing feature.
 """
 
+import datetime
 import logging
 import json
 import requests
@@ -58,15 +59,19 @@ def update_combined_events(event):
         "https://libcal.ou.edu/1.1/events?cal_id=12221&category=57031,57032&limit=3",
         "https://libcal.ou.edu/1.1/events?cal_id=12023&category=59730,59731&limit=3",
     ]
+
     all_events = []
     for cal in calendars:
-        events_resp = requests.get(cal, headers=headers)
+        events_resp = requests.get(cal, headers=headers, timeout=5)
         events_json = events_resp.json()
         all_events.extend(events_json["events"])
 
     # Sort by start time could be weird for long running events...
     # Going with simplest solution until we can prove that we don't need something better.
     sorted(all_events, key=lambda event: event["start"])
+
+    # Default expiration is 24 hours, which is too long. Let's try 20 minutes
+    expiration = datetime.datetime.now() + datetime.timedelta(minutes=20)
 
     # TODO think about whether to move this to a different bucket...specifically one without
     # versioning turned on.
@@ -77,6 +82,7 @@ def update_combined_events(event):
         Body=(bytes(json.dumps(events_json).encode("UTF-8"))),
         ContentEncoding="UTF-8",
         ContentType="application/json",
+        Expires=expiration,
     )
 
 
