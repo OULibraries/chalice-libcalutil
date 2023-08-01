@@ -51,13 +51,13 @@ def update_combined_events(event):
     # - OU Libraries Event
     # - Research Wrokshops
     calendars = [
-        "https://libcal.ou.edu/1.1/events?cal_id=12024&category=57017,57014&limit=3",
-        "https://libcal.ou.edu/1.1/events?cal_id=11976&category=57022,57021&limit=3",
-        "https://libcal.ou.edu/1.1/events?cal_id=12022&category=57025,57026&limit=3",
-        "https://libcal.ou.edu/1.1/events?cal_id=2267&category=57018,57020&limit=3",
-        "https://libcal.ou.edu/1.1/events?cal_id=12025&category=57028,57027&limit=3",
-        "https://libcal.ou.edu/1.1/events?cal_id=12221&category=57031,57032&limit=3",
-        "https://libcal.ou.edu/1.1/events?cal_id=12023&category=59730,59731&limit=3",
+        "https://libcal.ou.edu/1.1/events?cal_id=12024&category=57017,57014&limit=5&days=60",
+        "https://libcal.ou.edu/1.1/events?cal_id=11976&category=57022,57021&limit=5&days=60",
+        "https://libcal.ou.edu/1.1/events?cal_id=12022&category=57025,57026&limit=5&days=60",
+        "https://libcal.ou.edu/1.1/events?cal_id=2267&category=57018,57020&limit=5&days=60",
+        "https://libcal.ou.edu/1.1/events?cal_id=12025&category=57028,57027&limit=5&days=60",
+        "https://libcal.ou.edu/1.1/events?cal_id=12221&category=57031,57032&limit=5&days=60",
+        "https://libcal.ou.edu/1.1/events?cal_id=12023&category=59730,59731&limit=5&days=60",
     ]
 
     all_events = []
