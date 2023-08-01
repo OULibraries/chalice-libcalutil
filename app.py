@@ -20,6 +20,17 @@ app = Chalice(app_name="chalice-libcalutil")
 def update_combined_events(event):
     """Write new version of combined events json feed file."""
 
+    all_events = get_combined_events()
+
+    if len(all_events) > 2:
+        write_combined_events({"events": all_events[0:2]})
+    else:
+        write_combined_events({"events": all_events})
+
+
+def get_combined_events():
+    """Query libcal for a list of events from multiple calendars"""
+
     # Get LibCal credentials secret from SecretsManager
     creds = get_secret()
 
@@ -69,6 +80,10 @@ def update_combined_events(event):
     # Sort by start time could be weird for long running events...
     # Going with simplest solution until we can prove that we don't need something better.
     sorted(all_events, key=lambda event: event["start"])
+
+
+def write_combined_events(events_json):
+    """Write events json to S3 bucket"""
 
     # Default expiration is 24 hours, which is too long. Let's try 20 minutes
     expiration = datetime.datetime.now() + datetime.timedelta(minutes=20)
