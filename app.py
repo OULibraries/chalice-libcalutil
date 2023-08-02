@@ -34,9 +34,9 @@ def update_combined_events(event):
         # The page where we're displaying the combined events can only handle display of
         # two events so we're limiting ourselves to two events.
         if len(all_events) > 2:
-           write_combined_events({"events": all_events[0:2]})
+            write_combined_events({"events": all_events[0:2]})
         else:
-           write_combined_events({"events": all_events})
+            write_combined_events({"events": all_events})
 
     except:
         app.log.all("An error occurred getting events. Combined feed not updated.")
@@ -85,7 +85,7 @@ def get_combined_events(libcal_oauth_token):
     # Sort by start time could be weird for long running events...
     # Going with simplest solution until we can prove that we don't need something better.
     sorted(all_events, key=lambda event: event["start"])
-    app.log.all("Retrieved event count was %s." %(len(all_events)))
+    app.log.all("Retrieved event count was %s." % (len(all_events)))
     return all_events
 
 
