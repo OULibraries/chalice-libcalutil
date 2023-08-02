@@ -20,17 +20,6 @@ app = Chalice(app_name="chalice-libcalutil")
 def update_combined_events(event):
     """Write new version of combined events json feed file."""
 
-    all_events = get_combined_events()
-
-    if len(all_events) > 2:
-        write_combined_events({"events": all_events[0:2]})
-    else:
-        write_combined_events({"events": all_events})
-
-
-def get_combined_events():
-    """Query libcal for a list of events from multiple calendars"""
-
     # Get LibCal credentials secret from SecretsManager
     creds = get_secret()
 
@@ -39,6 +28,18 @@ def get_combined_events():
     # approximately once an hour in production and we're not doing anything else
     # the credential at this time.
     libcal_oauth_token = get_oauth_token(creds)
+
+    all_events = get_combined_events(libcal_oauth_token)
+
+    if len(all_events) > 2:
+        write_combined_events({"events": all_events[0:2]})
+    else:
+        write_combined_events({"events": all_events})
+
+
+def get_combined_events(libcal_oauth_token):
+    """Query libcal for a list of events from multiple calendars"""
+
     headers = {}
     headers["Authorization"] = "Bearer %s" % (libcal_oauth_token)
 
