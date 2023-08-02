@@ -34,7 +34,6 @@ def update_combined_events(event):
     except:
         app.log.error("An error occurred getting events. Combined feed will not be updated.")
         raise
-
     else:
         # The page where we're displaying the combined events can only handle display
         #  of two events so we're limiting ourselves to two events when we write out
@@ -79,17 +78,22 @@ def get_combined_events(libcal_oauth_token):
         "https://libcal.ou.edu/1.1/events?cal_id=12221&category=57031,57032&limit=5&days=60",
         "https://libcal.ou.edu/1.1/events?cal_id=12023&category=59730,59731&limit=5&days=60",
     ]
-
     all_events = []
-    for cal in calendars:
-        events_resp = requests.get(cal, headers=headers, timeout=5)
-        events_json = events_resp.json()
-        all_events.extend(events_json["events"])
-    # Sort by start time could be weird for long running events...
-    # Going with simplest solution until we can prove that we don't need something better.
-    sorted(all_events, key=lambda event: event["start"])
-    app.log.info("Retrieved event count was %s." % (len(all_events)))
-    return all_events
+
+    try:
+        for cal in calendars:
+            events_resp = requests.get(cal, headers=headers, timeout=5)
+            events_json = events_resp.json()
+            all_events.extend(events_json["events"])
+    except:
+        app.log.error("Problem getting calendar feeds from LibCal")
+        raise
+    else:
+        # Sort by start time could be weird for long running events...
+        # Going with simplest solution until we can prove that we don't need something better.
+        sorted(all_events, key=lambda event: event["start"])
+        app.log.info("Retrieved event count was %s." % (len(all_events)))
+        return all_events
 
 
 def write_combined_events(events_json):
@@ -102,13 +106,18 @@ def write_combined_events(events_json):
     # versioning turned on.
     # TODO are we using the right timout for the Expires header here?
     s3 = boto3.resource("s3")
-    s3object = s3.Object("ul-web-services", "libcal/events/all.json")
-    s3object.put(
-        Body=(bytes(json.dumps(events_json).encode("UTF-8"))),
-        ContentEncoding="UTF-8",
-        ContentType="application/json",
-        Expires=expiration,
-    )
+
+    try:
+        s3object = s3.Object("ul-web-services", "libcal/events/all.json")
+        s3object.put(
+            Body=(bytes(json.dumps(events_json).encode("UTF-8"))),
+            ContentEncoding="UTF-8",
+            ContentType="application/json",
+            Expires=expiration,
+        )
+    except:
+       app.log.error("Unable to write combined events json file to S3.")
+       raise
 
 
 def get_secret():
@@ -120,16 +129,16 @@ def get_secret():
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(service_name="secretsmanager", region_name=region_name)
-    try:
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    except ClientError as e:
-        # For a list of exceptions thrown, see
-        # https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-        raise e
 
-    # Retrieve decrypted secret using the associated KMS key.
-    secret = get_secret_value_response["SecretString"]
-    return json.loads(secret)
+    try:
+        secret_response = client.get_secret_value(SecretId=secret_name)
+        # Retrieve decrypted secret using the associated KMS key.
+        secret = secret_response["SecretString"]
+    except:
+        app.log.error ("Unable to get LibCal credentials from Secrets manager.")
+        raise
+    else:
+        return json.loads(secret)
 
 
 # Get Oauth token
@@ -140,9 +149,15 @@ def get_oauth_token(creds):
     client_secret = creds["secret"]
     client = BackendApplicationClient(client_id=client_id)
     oauth = OAuth2Session(client=client)
-    token = oauth.fetch_token(
-        token_url="https://libcal.ou.edu/1.1/oauth/token",
-        client_id=client_id,
-        client_secret=client_secret,
-    )
-    return token["access_token"]
+
+    try:
+       token = oauth.fetch_token(
+            token_url="https://libcal.ou.edu/1.1/oauth/token",
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+    except:
+        app.log.error("Unalbe to get LibCal auth header from API.")
+        raise
+    else:
+        return token["access_token"]
