@@ -3,6 +3,7 @@ Helper utility to create a combined calendar feed for libcal, a currently-missin
 """
 
 import datetime
+import os
 import logging
 import json
 import requests
@@ -15,7 +16,9 @@ from chalice import Chalice
 
 
 app = Chalice(app_name="chalice-libcalutil")
+app.log.setLevel(logging.INFO)
 
+libcal_out_path=os.environ.get("LIBCAL_OUT", "libcal-dev")
 
 @app.schedule("rate(1 hour)")
 def update_combined_events(event):
@@ -39,9 +42,9 @@ def update_combined_events(event):
         #  of two events so we're limiting ourselves to two events when we write out
         # json.
         if len(all_events) > 2:
-            write_combined_events({"events": all_events[0:2]})
+            write_combined_events({"events": all_events[0:2]}, libcal_out_path)
         else:
-            write_combined_events({"events": all_events})
+            write_combined_events({"events": all_events}, libcal_out_path)
 
 
 def get_combined_events(libcal_oauth_token):
@@ -96,7 +99,7 @@ def get_combined_events(libcal_oauth_token):
         return all_events
 
 
-def write_combined_events(events_json):
+def write_combined_events(events_json,out_path):
     """Write events json to S3 bucket"""
 
     # Default expiration is 24 hours, which is too long. Let's try 20 minutes
@@ -108,7 +111,7 @@ def write_combined_events(events_json):
     s3 = boto3.resource("s3")
 
     try:
-        s3object = s3.Object("ul-web-services", "libcal/events/all.json")
+        s3object = s3.Object("ul-web-services", "%s/events/all.json"%(out_path))
         s3object.put(
             Body=(bytes(json.dumps(events_json).encode("UTF-8"))),
             ContentEncoding="UTF-8",

@@ -6,7 +6,18 @@
     "dev": {
       "api_gateway_stage": "api",
       "manage_iam_role": false,
-      "iam_role_arn": "arn:aws:iam::188033381281:role/chalice-libcalutil-lambda"
+      "iam_role_arn": "arn:aws:iam::188033381281:role/chalice-libcalutil-lambda",
+      "environment_variables": {
+        "LIBCAL_OUT": "libcal-dev"
+      }
+    },
+    "prod": {
+      "api_gateway_stage": "api",
+      "manage_iam_role": false,
+      "iam_role_arn": "arn:aws:iam::188033381281:role/chalice-libcalutil-lambda",
+      "environment_variables": {
+        "LIBCAL_OUT": "libcal"
+      }
     }
   }
 }
