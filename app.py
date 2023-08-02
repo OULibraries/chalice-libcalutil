@@ -13,6 +13,7 @@ from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 from chalice import Chalice
 
+
 app = Chalice(app_name="chalice-libcalutil")
 
 
@@ -20,20 +21,25 @@ app = Chalice(app_name="chalice-libcalutil")
 def update_combined_events(event):
     """Write new version of combined events json feed file."""
 
-    # Get LibCal credentials secret from SecretsManager
-    creds = get_secret()
+    try:
+        # Get LibCal credentials secret from SecretsManager
+        creds = get_secret()
+        # Get header token from libcal for authing requests
+        # We could save this somewhere for reuse, but this function will get called
+        # approximately once an hour in production and we're not doing anything else
+        # the credential at this time.
+        libcal_oauth_token = get_oauth_token(creds)
+        all_events = get_combined_events(libcal_oauth_token)
 
-    # Get header token from libcal for authing requests
-    # We could save this somewhere for reuse, but this function will get called
-    # approximately once an hour in production and we're not doing anything else
-    # the credential at this time.
-    libcal_oauth_token = get_oauth_token(creds)
+        # The page where we're displaying the combined events can only handle display of
+        # two events so we're limiting ourselves to two events.
+        if len(all_events) > 2:
+           write_combined_events({"events": all_events[0:2]})
+        else:
+           write_combined_events({"events": all_events})
 
-    all_events = get_combined_events(libcal_oauth_token)
-    if len(all_events) > 2:
-        write_combined_events({"events": all_events[0:2]})
-    else:
-        write_combined_events({"events": all_events})
+    except:
+        app.log.all("An error occurred getting events. Combined feed not updated.")
 
 
 def get_combined_events(libcal_oauth_token):
@@ -79,6 +85,7 @@ def get_combined_events(libcal_oauth_token):
     # Sort by start time could be weird for long running events...
     # Going with simplest solution until we can prove that we don't need something better.
     sorted(all_events, key=lambda event: event["start"])
+    app.log.all("Retrieved event count was %s." %(len(all_events)))
     return all_events
 
 
@@ -103,6 +110,7 @@ def write_combined_events(events_json):
 
 def get_secret():
     """Get JSON blob of secrets required to auth with libcal API from AWS Secrets Manager."""
+
     secret_name = "prod/lambdaCal/LibcalEventsRO"
     region_name = "us-east-1"
 
