@@ -82,6 +82,8 @@ def get_combined_events(libcal_oauth_token):
     # Going with simplest solution until we can prove that we don't need something better.
     sorted(all_events, key=lambda event: event["start"])
 
+    return all_events
+
 
 def write_combined_events(events_json):
     """Write events json to S3 bucket"""
