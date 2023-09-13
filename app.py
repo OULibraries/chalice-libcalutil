@@ -18,7 +18,8 @@ from chalice import Chalice
 app = Chalice(app_name="chalice-libcalutil")
 app.log.setLevel(logging.INFO)
 
-libcal_out_path=os.environ.get("LIBCAL_OUT", "libcal-dev")
+libcal_out_path = os.environ.get("LIBCAL_OUT", "libcal-dev")
+
 
 @app.schedule("rate(1 hour)")
 def update_combined_events(event):
@@ -35,7 +36,9 @@ def update_combined_events(event):
         all_events = get_combined_events(libcal_oauth_token)
 
     except:
-        app.log.error("An error occurred getting events. Combined feed will not be updated.")
+        app.log.error(
+            "An error occurred getting events. Combined feed will not be updated."
+        )
         raise
     else:
         # The page where we're displaying the combined events can only handle display
@@ -94,12 +97,12 @@ def get_combined_events(libcal_oauth_token):
     else:
         # Sort by start time could be weird for long running events...
         # Going with simplest solution until we can prove that we don't need something better.
-        sorted(all_events, key=lambda event: event["start"])
+        all_events.sort(key=lambda event: event["start"])
         app.log.info("Retrieved event count was %s." % (len(all_events)))
         return all_events
 
 
-def write_combined_events(events_json,out_path):
+def write_combined_events(events_json, out_path):
     """Write events json to S3 bucket"""
 
     # Default expiration is 24 hours, which is too long. Let's try 20 minutes
@@ -111,7 +114,7 @@ def write_combined_events(events_json,out_path):
     s3 = boto3.resource("s3")
 
     try:
-        s3object = s3.Object("ul-web-services", "%s/events/all.json"%(out_path))
+        s3object = s3.Object("ul-web-services", "%s/events/all.json" % (out_path))
         s3object.put(
             Body=(bytes(json.dumps(events_json).encode("UTF-8"))),
             ContentEncoding="UTF-8",
@@ -119,8 +122,8 @@ def write_combined_events(events_json,out_path):
             Expires=expiration,
         )
     except:
-       app.log.error("Unable to write combined events json file to S3.")
-       raise
+        app.log.error("Unable to write combined events json file to S3.")
+        raise
 
 
 def get_secret():
@@ -138,7 +141,7 @@ def get_secret():
         # Retrieve decrypted secret using the associated KMS key.
         secret = secret_response["SecretString"]
     except:
-        app.log.error ("Unable to get LibCal credentials from Secrets manager.")
+        app.log.error("Unable to get LibCal credentials from Secrets manager.")
         raise
     else:
         return json.loads(secret)
@@ -154,7 +157,7 @@ def get_oauth_token(creds):
     oauth = OAuth2Session(client=client)
 
     try:
-       token = oauth.fetch_token(
+        token = oauth.fetch_token(
             token_url="https://libcal.ou.edu/1.1/oauth/token",
             client_id=client_id,
             client_secret=client_secret,
