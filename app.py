@@ -96,6 +96,7 @@ def get_combined_events(libcal_oauth_token):
         raise
     else:
         # Sort by start time could be weird for long running events...
+        # Padded start time format means alpha sort corresponds to date sort.
         # Going with simplest solution until we can prove that we don't need something better.
         all_events.sort(key=lambda event: event["start"])
         app.log.info("Retrieved event count was %s." % (len(all_events)))
