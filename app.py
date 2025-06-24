@@ -56,33 +56,18 @@ def get_combined_events(libcal_oauth_token):
     headers = {}
     headers["Authorization"] = "Bearer %s" % (libcal_oauth_token)
 
-    # We want to get events from various calendars and combine them in to a single
-    # list, sorted by start time. This is a missing-but-hoped-for feature in the
-    # LibCal API. See docs at https://libcal.ou.edu/admin/api/ (requires login)
+    # We originally wanted to get events from various calendars, but this wasn't a libcal
+    # feature, so we wrote this as a workaround. We've now moved to a single calendar so
+    # it's unneccessary, and we will be deprecating it entirely with the next version of the
+    # web site.
     #
-    # The calendars that we care about are:
+    # The new combined single calendar has the ID 21890
+    # - local categores for events and workshops:  81754,81755
+    # - cross-calendar categories for events and workshops: 57006,57007&
     #
-    # Cal ID    Name
-    # ------    -----
-    #  12024     339
-    #  11976     General
-    #  12022     Learning Lab Classroom
-    #   2267     Library Maker Space
-    #  12025     LL118
-    #  12221     LL121E
-    #  12023     LL123
-    #
-    # For all of the above, we're querying two categories of event
-    # - OU Libraries Event
-    # - Research Wrokshops
+    # We weren't previously including cross-calendar categories, but will now.
     calendars = [
-        "https://libcal.ou.edu/1.1/events?cal_id=12024&category=57017,57014&limit=5&days=60",
-        "https://libcal.ou.edu/1.1/events?cal_id=11976&category=57022,57021&limit=5&days=60",
-        "https://libcal.ou.edu/1.1/events?cal_id=12022&category=57025,57026&limit=5&days=60",
-        "https://libcal.ou.edu/1.1/events?cal_id=2267&category=57018,57020&limit=5&days=60",
-        "https://libcal.ou.edu/1.1/events?cal_id=12025&category=57028,57027&limit=5&days=60",
-        "https://libcal.ou.edu/1.1/events?cal_id=12221&category=57031,57032&limit=5&days=60",
-        "https://libcal.ou.edu/1.1/events?cal_id=12023&category=59730,59731&limit=5&days=60",
+        "https://libcal.ou.edu/1.1/events?cal_id=21890&category=81754,81755,57006,57007&limit=5&days=60",
     ]
     all_events = []
 
